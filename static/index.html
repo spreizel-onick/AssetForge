@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AssetForge</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=3.3.2">
 </head>
 <body>
 
   <header>
+    <button class="hamburger" id="hamburger" title="Menü öffnen">☰</button>
     <div class="brand">
       <h1><span>Asset</span>Forge</h1>
       <span class="brand-sub">by Onick</span>
@@ -23,8 +24,9 @@
     </div>
   </header>
 
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
   <div class="container">
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebar">
       <div class="sidebar-search">
         <input type="text" id="sidebar-search" placeholder="Suchen..." autocomplete="off">
       </div>
@@ -151,6 +153,6 @@
   </div>
 
   <footer id="app-footer"></footer>
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=3.3.2"></script>
 </body>
 </html>

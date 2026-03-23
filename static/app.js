@@ -75,6 +75,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Keyboard shortcuts
   document.addEventListener("keydown", handleShortcuts);
+
+  // Mobile hamburger menu
+  document.getElementById("hamburger").addEventListener("click", toggleMobileSidebar);
+  document.getElementById("sidebar-overlay").addEventListener("click", closeMobileSidebar);
 });
 
 // ── Keyboard Shortcuts ────────────────────────────────
@@ -390,6 +394,17 @@ function renderSidebar() {
   if (genTotal) genTotal.textContent = `(${total})`;
 }
 
+// ── Mobile Sidebar ────────────────────────────────────
+function toggleMobileSidebar() {
+  document.getElementById("sidebar").classList.toggle("mobile-open");
+  document.getElementById("sidebar-overlay").classList.toggle("active");
+}
+
+function closeMobileSidebar() {
+  document.getElementById("sidebar").classList.remove("mobile-open");
+  document.getElementById("sidebar-overlay").classList.remove("active");
+}
+
 function toggleAllCategories() {
   const allItems = document.querySelectorAll("#gen-nav .category-items");
   const allArrows = document.querySelectorAll("#gen-nav .cat-arrow");
@@ -429,12 +444,14 @@ function selectGenerator(gen, btn) {
   btn.classList.add("active");
   btn.scrollIntoView({ behavior: "smooth", block: "nearest" });
   renderForm(gen);
+  closeMobileSidebar();
 }
 
 function selectPreset(key, preset, btn) {
   clearActive();
   btn.classList.add("active");
   renderPresetForm(key, preset);
+  closeMobileSidebar();
 }
 
 // ── Generator Form ─────────────────────────────────────
@@ -474,8 +491,13 @@ function renderForm(gen) {
     form.appendChild(createField(param));
   }
 
+  // Restore last used params from localStorage
+  restoreFormParams(gen.name, form);
+
   document.getElementById("btn-generate").addEventListener("click", async () => {
     if (!validateForm(gen.parameters)) return;
+    // Save params for next time
+    saveFormParams(gen.name, form);
     // Check for existing files
     const proceed = await checkOverwrite(gen.name);
     if (proceed) runGenerator(gen.name);
@@ -745,6 +767,46 @@ async function runPreset(key) {
 
   btn.disabled = false;
   btn.textContent = "Preset ausführen";
+}
+
+// ── Parameter Persistence ─────────────────────────────
+function saveFormParams(genName, form) {
+  try {
+    const data = collectFormData(form);
+    const saved = JSON.parse(localStorage.getItem("af-params") || "{}");
+    saved[genName] = data;
+    localStorage.setItem("af-params", JSON.stringify(saved));
+  } catch (e) { /* ignore */ }
+}
+
+function restoreFormParams(genName, form) {
+  try {
+    const saved = JSON.parse(localStorage.getItem("af-params") || "{}");
+    const data = saved[genName];
+    if (!data) return;
+
+    for (const [key, val] of Object.entries(data)) {
+      if (Array.isArray(val)) {
+        // Multi-select checkboxes
+        form.querySelectorAll(`input[name="${key}"]`).forEach(cb => {
+          if (cb.type === "checkbox") cb.checked = val.includes(cb.value);
+        });
+      } else if (typeof val === "boolean") {
+        const cb = form.querySelector(`input[name="${key}"][type="checkbox"]`);
+        if (cb) cb.checked = val;
+      } else {
+        const el = form.querySelector(`[name="${key}"]`);
+        if (el) {
+          el.value = val;
+          // Sync color hex input
+          if (el.type === "color") {
+            const hex = form.querySelector(`[name="${key}_hex"]`);
+            if (hex) hex.value = val;
+          }
+        }
+      }
+    }
+  } catch (e) { /* ignore */ }
 }
 
 function collectFormData(form) {
