@@ -1,0 +1,83 @@
+# Auto-generated GitLab CI
+stages:
+{% if run_lint %}
+  - lint
+{% endif %}
+  - build
+{% if run_tests %}
+  - test
+{% endif %}
+{% if deploy %}
+  - deploy
+{% endif %}
+
+{% if stack == "python" %}
+image: python:3.12-slim
+
+before_script:
+  - pip install -r requirements.txt
+{% elif stack == "node" %}
+image: node:20-alpine
+
+before_script:
+  - npm ci
+{% elif stack == "java" %}
+image: eclipse-temurin:21-jdk
+{% elif stack == "go" %}
+image: golang:1.22
+{% endif %}
+
+{% if run_lint %}
+lint:
+  stage: lint
+{% if stack == "python" %}
+  script:
+    - pip install flake8
+    - flake8 . --count --show-source --statistics
+{% elif stack == "node" %}
+  script:
+    - npm run lint
+{% elif stack == "go" %}
+  script:
+    - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    - golangci-lint run
+{% endif %}
+{% endif %}
+
+build:
+  stage: build
+  script:
+{% if stack == "python" %}
+    - python -m py_compile app.py
+{% elif stack == "node" %}
+    - npm run build
+{% elif stack == "java" %}
+    - ./gradlew build -x test
+{% elif stack == "go" %}
+    - go build ./...
+{% endif %}
+
+{% if run_tests %}
+test:
+  stage: test
+  script:
+{% if stack == "python" %}
+    - pip install pytest
+    - pytest
+{% elif stack == "node" %}
+    - npm test
+{% elif stack == "java" %}
+    - ./gradlew test
+{% elif stack == "go" %}
+    - go test ./...
+{% endif %}
+{% endif %}
+
+{% if deploy %}
+deploy:
+  stage: deploy
+  only:
+    - main
+  script:
+    - echo "Add your deployment steps here"
+{% endif %}

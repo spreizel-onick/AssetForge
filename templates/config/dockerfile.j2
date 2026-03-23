@@ -1,0 +1,71 @@
+# Auto-generated Dockerfile
+{% if stack == "python" %}
+FROM python:3.12-slim AS base
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE {{ port | default(8000) }}
+
+CMD ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "{{ port | default(8000) }}"]
+{% elif stack == "node" %}
+FROM node:20-alpine AS base
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY . .
+
+EXPOSE {{ port | default(3000) }}
+
+CMD ["node", "index.js"]
+{% elif stack == "java" %}
+FROM eclipse-temurin:21-jdk AS build
+
+WORKDIR /app
+COPY . .
+RUN ./gradlew build -x test
+
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
+
+EXPOSE {{ port | default(8080) }}
+
+CMD ["java", "-jar", "app.jar"]
+{% elif stack == "go" %}
+FROM golang:1.22-alpine AS build
+
+WORKDIR /app
+COPY go.* ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 go build -o /bin/app .
+
+FROM alpine:3.19
+COPY --from=build /bin/app /bin/app
+
+EXPOSE {{ port | default(8080) }}
+
+CMD ["/bin/app"]
+{% elif stack == "rust" %}
+FROM rust:1.77 AS build
+
+WORKDIR /app
+COPY . .
+RUN cargo build --release
+
+FROM debian:bookworm-slim
+COPY --from=build /app/target/release/app /usr/local/bin/app
+
+EXPOSE {{ port | default(8080) }}
+
+CMD ["app"]
+{% endif %}

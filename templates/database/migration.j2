@@ -1,0 +1,36 @@
+-- Migration: {{ migration_name | default("initial") }}
+-- Created: {{ date | default("YYYY-MM-DD") }}
+
+-- === UP ===
+
+{% if migration_type == "create_table" %}
+CREATE TABLE IF NOT EXISTS {{ table_name }} (
+    id SERIAL PRIMARY KEY,
+{% for col in columns %}
+    {{ col.name }} {{ col.type | upper }}{% if col.nullable is defined and not col.nullable %} NOT NULL{% endif %}{% if col.default is defined %} DEFAULT {{ col.default }}{% endif %}{% if not loop.last %},{% endif %}
+
+{% endfor %}
+    ,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+{% elif migration_type == "add_column" %}
+ALTER TABLE {{ table_name }}
+{% for col in columns %}
+    ADD COLUMN {{ col.name }} {{ col.type | upper }}{% if col.nullable is defined and not col.nullable %} NOT NULL{% endif %}{% if col.default is defined %} DEFAULT {{ col.default }}{% endif %}{% if not loop.last %},{% endif %}
+{% endfor %};
+{% elif migration_type == "drop_table" %}
+DROP TABLE IF EXISTS {{ table_name }};
+{% endif %}
+
+-- === DOWN (Rollback) ===
+
+{% if migration_type == "create_table" %}
+DROP TABLE IF EXISTS {{ table_name }};
+{% elif migration_type == "add_column" %}
+ALTER TABLE {{ table_name }}
+{% for col in columns %}
+    DROP COLUMN IF EXISTS {{ col.name }}{% if not loop.last %},{% endif %}
+{% endfor %};
+{% elif migration_type == "drop_table" %}
+-- Recreate the table manually if needed
+{% endif %}

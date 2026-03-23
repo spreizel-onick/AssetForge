@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AssetForge</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1><span>Asset</span>Forge</h1>
+      <span class="brand-sub">by Onick</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btn-theme" title="Theme wechseln">Light</button>
+      <button class="btn" id="btn-bundle" title="Mehrere Generatoren zusammen ausführen">Bundle</button>
+      <button class="btn" id="btn-settings" title="Output-Verzeichnis ändern">Einstellungen</button>
+      <button class="btn" id="btn-history" title="Generierungs-History">History <span class="badge" id="history-badge" style="display:none">0</span></button>
+      <button class="btn" id="btn-output">Dateien</button>
+      <button class="btn btn-primary" id="btn-zip">ZIP</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav class="sidebar">
+      <div class="sidebar-search">
+        <input type="text" id="sidebar-search" placeholder="Suchen..." autocomplete="off">
+      </div>
+      <h3>Favoriten</h3>
+      <div id="fav-nav"></div>
+      <h3>Presets</h3>
+      <div id="preset-nav"></div>
+      <h3 style="margin-top:1rem;display:flex;align-items:center;justify-content:space-between">
+        <span>Generatoren <small id="gen-total" style="font-weight:400;opacity:0.7"></small></span>
+        <button class="btn btn-sm" id="btn-toggle-cats" title="Alle auf-/zuklappen" style="font-size:0.6rem;padding:0.15rem 0.4rem">Alle ▾</button>
+      </h3>
+      <div id="gen-nav"></div>
+    </nav>
+
+    <main id="main-content">
+      <div class="welcome">
+        <h2>AssetForge</h2>
+        <p>Erstelle Projekt-Assets wie Logos, Configs, Dokumentation und mehr.</p>
+        <div class="stats-bar" id="stats-bar"></div>
+        <div class="welcome-grid" id="welcome-grid"></div>
+        <div class="recent-section" id="recent-section"></div>
+        <div class="shortcuts-hint">
+          <strong>Tastatur:</strong> Ctrl+K Suche &middot; Ctrl+G Generieren &middot; Ctrl+B Bundle &middot; Ctrl+H History &middot; Esc Schliessen
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Output Panel -->
+  <div class="output-panel" id="output-panel">
+    <h3>
+      Generierte Dateien
+      <span>
+        <button class="btn btn-sm" id="btn-clear-output" title="Alle Dateien löschen" style="color:var(--accent)">Leeren</button>
+        <button class="btn btn-sm" id="close-output">X</button>
+      </span>
+    </h3>
+    <div id="output-dir-display" class="output-dir"></div>
+    <ul class="output-list" id="output-list"></ul>
+  </div>
+
+  <!-- Preview Modal -->
+  <div class="modal-overlay" id="preview-modal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3 id="preview-title">Vorschau</h3>
+        <div class="modal-header-actions">
+          <button class="btn" id="preview-copy" title="In Zwischenablage kopieren">Kopieren</button>
+          <button class="btn" id="preview-download">Download</button>
+          <button class="btn" id="preview-close">X</button>
+        </div>
+      </div>
+      <div id="preview-content" class="preview-content"></div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal-overlay" id="history-modal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3>Generierungs-History</h3>
+        <div class="modal-header-actions">
+          <button class="btn btn-sm" id="history-clear" style="color:var(--accent)">Alles löschen</button>
+          <button class="btn" id="history-close">X</button>
+        </div>
+      </div>
+      <div id="history-content" class="history-content"></div>
+    </div>
+  </div>
+
+  <!-- Bundle Modal -->
+  <div class="modal-overlay" id="bundle-modal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3>Bundle Builder</h3>
+        <div class="modal-header-actions">
+          <button class="btn" id="bundle-close">X</button>
+        </div>
+      </div>
+      <p class="desc" style="margin-bottom:1rem">Wähle mehrere Generatoren aus und führe sie zusammen aus.</p>
+      <div id="bundle-list" class="bundle-list"></div>
+      <div class="modal-actions">
+        <span id="bundle-count" class="bundle-count">0 ausgewählt</span>
+        <button class="btn btn-primary" id="bundle-run">Bundle generieren</button>
+      </div>
+      <div id="bundle-result"></div>
+    </div>
+  </div>
+
+  <!-- Quick Launcher Modal -->
+  <div class="modal-overlay" id="launcher-modal">
+    <div class="modal" style="margin-top:-15vh">
+      <div class="field" style="margin-bottom:0">
+        <input type="text" id="launcher-input" placeholder="Generator oder Preset suchen..." autocomplete="off">
+      </div>
+      <ul class="launcher-results" id="launcher-results"></ul>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal">
+      <h3>Einstellungen</h3>
+      <div class="field">
+        <label>Output-Verzeichnis</label>
+        <input type="text" id="settings-output-dir" placeholder="z.B. C:\Users\Onick\MeinProjekt">
+        <p class="hint">Leer lassen für Standard (./output). Hier kannst du direkt in ein Zielprojekt generieren.</p>
+      </div>
+      <div class="field">
+        <label>Favoriten</label>
+        <div class="field-row">
+          <button class="btn btn-sm" id="btn-export-favs">Exportieren</button>
+          <button class="btn btn-sm" id="btn-import-favs">Importieren</button>
+          <input type="file" id="import-favs-file" accept=".json" style="display:none">
+        </div>
+        <p class="hint">Favoriten als JSON-Datei exportieren oder importieren.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="settings-cancel">Abbrechen</button>
+        <button class="btn" id="settings-reset">Zurücksetzen</button>
+        <button class="btn btn-primary" id="settings-save">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <footer id="app-footer"></footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>

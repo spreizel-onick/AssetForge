@@ -1,0 +1,92 @@
+# Auto-generated docker-compose.yml
+version: "3.9"
+
+services:
+{% if "app" in services %}
+  app:
+    build: .
+    container_name: {{ project_name | default("app") | lower | replace(" ", "-") }}
+    ports:
+      - "{{ port | default(8000) }}:{{ port | default(8000) }}"
+    environment:
+      - NODE_ENV=production
+{% if "postgres" in services %}
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/{{ project_name | default("app") | lower | replace(" ", "-") }}
+{% elif "mysql" in services %}
+      - DATABASE_URL=mysql://root:root@mysql:3306/{{ project_name | default("app") | lower | replace(" ", "-") }}
+{% elif "mongo" in services %}
+      - MONGO_URL=mongodb://mongo:27017/{{ project_name | default("app") | lower | replace(" ", "-") }}
+{% endif %}
+{% if "redis" in services %}
+      - REDIS_URL=redis://redis:6379
+{% endif %}
+    depends_on:
+{% for svc in services if svc != "app" and svc != "nginx" %}
+      - {{ svc }}
+{% endfor %}
+{% endif %}
+
+{% if "postgres" in services %}
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: {{ project_name | default("app") | lower | replace(" ", "-") }}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+{% endif %}
+
+{% if "mysql" in services %}
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: {{ project_name | default("app") | lower | replace(" ", "-") }}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+{% endif %}
+
+{% if "redis" in services %}
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+{% endif %}
+
+{% if "mongo" in services %}
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+{% endif %}
+
+{% if "nginx" in services %}
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+{% if "app" in services %}
+    depends_on:
+      - app
+{% endif %}
+{% endif %}
+
+volumes:
+{% if "postgres" in services %}
+  postgres_data:
+{% endif %}
+{% if "mysql" in services %}
+  mysql_data:
+{% endif %}
+{% if "mongo" in services %}
+  mongo_data:
+{% endif %}

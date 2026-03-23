@@ -1,0 +1,78 @@
+# {{ project_name }}
+
+{% if badges %}
+{% if license_type %}![License](https://img.shields.io/badge/license-{{ license_type }}-blue.svg){% endif %}
+{% endif %}
+
+{{ description | default("A brief description of your project.") }}
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+{% if has_api %}- [API](#api){% endif %}
+- [Contributing](#contributing)
+- [License](#license)
+
+## Installation
+
+```bash
+{% if stack == "python" %}
+pip install -r requirements.txt
+{% elif stack == "node" %}
+npm install
+{% elif stack == "java" %}
+./gradlew build
+{% elif stack == "go" %}
+go mod download
+{% else %}
+# Add installation steps here
+{% endif %}
+```
+
+## Usage
+
+```bash
+{% if stack == "python" %}
+python app.py
+{% elif stack == "node" %}
+npm start
+{% elif stack == "java" %}
+./gradlew run
+{% elif stack == "go" %}
+go run .
+{% else %}
+# Add usage instructions here
+{% endif %}
+```
+
+{% if has_api %}
+## API
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Home |
+
+{% endif %}
+
+{% if has_env %}
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill in the values:
+
+```bash
+cp .env.example .env
+```
+{% endif %}
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+## License
+
+{% if license_type %}
+This project is licensed under the {{ license_type }} License — see the [LICENSE](LICENSE) file for details.
+{% else %}
+This project is licensed under the MIT License.
+{% endif %}

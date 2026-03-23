@@ -1,0 +1,107 @@
+# Auto-generated GitHub Actions CI
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+{% if stack == "python" %}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+{% if run_lint %}
+
+      - name: Lint
+        run: |
+          pip install flake8
+          flake8 . --count --show-source --statistics
+{% endif %}
+{% if run_tests %}
+
+      - name: Test
+        run: |
+          pip install pytest
+          pytest
+{% endif %}
+
+{% elif stack == "node" %}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+{% if run_lint %}
+
+      - name: Lint
+        run: npm run lint
+{% endif %}
+{% if run_tests %}
+
+      - name: Test
+        run: npm test
+{% endif %}
+
+{% elif stack == "java" %}
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Build
+        run: ./gradlew build
+{% if run_tests %}
+
+      - name: Test
+        run: ./gradlew test
+{% endif %}
+
+{% elif stack == "go" %}
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+{% if run_lint %}
+
+      - name: Lint
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          golangci-lint run
+{% endif %}
+{% if run_tests %}
+
+      - name: Test
+        run: go test ./...
+{% endif %}
+{% endif %}
+
+{% if deploy %}
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy
+        run: echo "Add your deployment steps here"
+{% endif %}

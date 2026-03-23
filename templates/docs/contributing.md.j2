@@ -1,0 +1,47 @@
+# Contributing to {{ project_name | default("this project") }}
+
+Thank you for your interest in contributing! Here are some guidelines to help you get started.
+
+## Getting Started
+
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/{{ project_name | default("project") | lower | replace(" ", "-") }}.git`
+3. Create a branch: `git checkout -b feature/your-feature-name`
+4. Make your changes
+5. Commit: `git commit -m "Add your feature"`
+6. Push: `git push origin feature/your-feature-name`
+7. Open a Pull Request
+
+## Development Setup
+
+```bash
+{% if stack == "python" %}
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+{% elif stack == "node" %}
+npm install
+{% else %}
+# Add development setup steps here
+{% endif %}
+```
+
+## Code Style
+
+{% if stack == "python" %}
+- Follow PEP 8
+- Use type hints where possible
+{% elif stack == "node" %}
+- Follow the existing ESLint configuration
+- Use Prettier for formatting
+{% else %}
+- Follow the existing code style
+{% endif %}
+
+## Pull Request Guidelines
+
+- Keep PRs focused and small
+- Write descriptive commit messages
+- Add tests for new features
+- Update documentation as needed
+- Ensure all tests pass before submitting

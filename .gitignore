@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# AssetForge data (user-specific)
+.assetforge/
+output/
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code config
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment
+.env
