@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/banner.png" alt="AssetForge Banner" width="100%">
+</p>
+
 # 🛠️ AssetForge
 
 **Project Asset Generator — alles was dein Projekt braucht, mit einem Klick.**
