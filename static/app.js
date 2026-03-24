@@ -1150,16 +1150,14 @@ async function importFavorites(e) {
     const text = await file.text();
     const imported = JSON.parse(text);
     if (!Array.isArray(imported)) throw new Error("Ungültiges Format");
-    for (const fav of imported) {
-      if (!fav.name || !fav.generator) continue;
-      await fetch(`${API}/api/favorites`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(fav),
-      });
-    }
+    const res = await fetch(`${API}/api/favorites/import`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ favorites: imported }),
+    });
+    const result = await res.json();
     await loadFavorites();
-    showToast(`${imported.length} Favoriten importiert`);
+    showToast(`${result.added} Favoriten importiert` + (result.skipped ? `, ${result.skipped} Duplikate übersprungen` : ""));
   } catch (err) {
     showToast("Import fehlgeschlagen: " + err.message, "error");
   }

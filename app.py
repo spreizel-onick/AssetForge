@@ -218,6 +218,39 @@ async def api_delete_favorite(index: int):
     return {"removed": removed}
 
 
+@app.get("/api/favorites/export")
+async def api_export_favorites():
+    """Export favorites as JSON download."""
+    favs = _load_json(FAVORITES_FILE)
+    content = json.dumps(favs, indent=2, ensure_ascii=False).encode("utf-8")
+    return StreamingResponse(
+        BytesIO(content),
+        media_type="application/json",
+        headers={"Content-Disposition": "attachment; filename=assetforge-favorites.json"},
+    )
+
+
+@app.post("/api/favorites/import")
+async def api_import_favorites(request: Request):
+    """Import favorites from JSON. Merges with existing, skips duplicates."""
+    body = await request.json()
+    imported = body.get("favorites", [])
+    if not isinstance(imported, list):
+        raise HTTPException(400, "Invalid format: expected {favorites: [...]}")
+    existing = _load_json(FAVORITES_FILE)
+    # Deduplicate by generator+name combo
+    existing_keys = {(f.get("generator"), f.get("name")) for f in existing}
+    added = 0
+    for fav in imported:
+        key = (fav.get("generator"), fav.get("name"))
+        if key not in existing_keys:
+            existing.append(fav)
+            existing_keys.add(key)
+            added += 1
+    _save_json(FAVORITES_FILE, existing)
+    return {"added": added, "total": len(existing), "skipped": len(imported) - added}
+
+
 # ── File Check (overwrite warning) ─────────────────────────
 
 @app.post("/api/check-files")
