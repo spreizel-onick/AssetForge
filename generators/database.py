@@ -90,8 +90,19 @@ def generate_seed(params: dict) -> dict:
     ],
 )
 def generate_erd(params: dict) -> dict:
-    tables = params.get("tables", [])
+    tables_raw = params.get("tables", [])
     relations = params.get("relations", [])
+
+    # Support both simple string list ["users", "posts"] and full JSON objects
+    tables = []
+    for table in tables_raw:
+        if isinstance(table, str):
+            tables.append({"name": table, "columns": [
+                {"name": "id", "type": "int"},
+                {"name": "created_at", "type": "timestamp"},
+            ]})
+        else:
+            tables.append(table)
 
     lines = ["```mermaid", "erDiagram"]
     for table in tables:
